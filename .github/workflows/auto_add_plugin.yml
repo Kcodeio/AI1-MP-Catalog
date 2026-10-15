@@ -1,0 +1,112 @@
+name: Auto Add Plugin to Catalog
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  update-catalog:
+    # Sadece bizim uygulamanın açtığı modül ekleme issue'larında çalışır
+    if: startsWith(github.event.issue.title, '[Modül Ekleme]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repoyu Klonla
+        uses: actions/checkout@v4
+
+      - name: Python Kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: catalog.json Güncelle
+        run: |
+          python - << 'EOF'
+          import os
+          import json
+          import re
+
+          issue_body = os.environ.get("ISSUE_BODY", "")
+
+          def extract_field(pattern, default=""):
+              match = re.search(pattern, issue_body)
+              return match.group(1).strip() if match else default
+
+          plugin_id = extract_field(r"-\s*\*\*Modül ID:\*\*\s*`([^`]+)`")
+          name = extract_field(r"-\s*\*\*İsim:\*\*\s*(.+)")
+          version = extract_field(r"-\s*\*\*Sürüm:\*\*\s*(.+)", "1.0.0")
+          author = extract_field(r"-\s*\*\*Geliştirici:\*\*\s*(.+)", "Anonim")
+          category = extract_field(r"-\s*\*\*Kategori:\*\*\s*(.+)", "Genel")
+          description = extract_field(r"-\s*\*\*Açıklama:\*\*\s*(.+)", "")
+          download_url = extract_field(r"🔗\s*\*\*\.aio İndirme Bağlantısı:\*\*\s*(https?://[^\s]+)")
+
+          if not plugin_id or not download_url:
+              print("Eksik bilgi: Modül ID veya İndirme Linki bulunamadı.")
+              exit(1)
+
+          catalog_path = "catalog.json"
+          catalog = []
+          if os.path.exists(catalog_path):
+              with open(catalog_path, "r", encoding="utf-8") as f:
+                  try:
+                      catalog = json.load(f)
+                  except:
+                      catalog = []
+
+          # Eğer aynı id varsa güncelle, yoksa yeni ekle
+          updated = False
+          new_entry = {
+              "id": plugin_id,
+              "name": name,
+              "version": version,
+              "author": author,
+              "category": category,
+              "description": description,
+              "download_url": download_url
+          }
+
+          for idx, item in enumerate(catalog):
+              if item.get("id") == plugin_id:
+                  catalog[idx] = new_entry
+                  updated = True
+                  break
+
+          if not updated:
+              catalog.append(new_entry)
+
+          with open(catalog_path, "w", encoding="utf-8") as f:
+              json.dump(catalog, f, indent=2, ensure_ascii=False)
+
+          print(f"Başarıyla eklendi/güncellendi: {plugin_id}")
+          EOF
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Değişiklikleri Kaydet (Commit & Push)
+        run: |
+          git config --global user.name "AI1-Bot"
+          git config --global user.email "bot@ai1.internal"
+          git add catalog.json
+          git commit -m "feat(catalog): Modül otomatik eklendi [skip ci]" || exit 0
+          git push
+
+      - name: Issue'yu Kapat ve Yanıt Ver
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🎉 **Modülünüz başarıyla onaylandı ve AI1 Eklenti Mağazası'na (catalog.json) eklendi!** Artık tüm kullanıcılar marketten tek tıkla indirebilir."
+            });
+            github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "closed"
+            });
