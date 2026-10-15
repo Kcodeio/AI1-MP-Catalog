@@ -2,7 +2,7 @@ name: Auto Add Plugin to Catalog
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 permissions:
   contents: write
@@ -10,8 +10,7 @@ permissions:
 
 jobs:
   update-catalog:
-    # Sadece bizim uygulamanın açtığı modül ekleme issue'larında çalışır
-    if: startsWith(github.event.issue.title, '[Modül Ekleme]')
+    if: contains(github.event.issue.title, 'Modül Ekleme') || contains(github.event.issue.title, 'Module')
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +22,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: catalog.json Güncelle
+      - name: catalog.json Guncelle
         run: |
           python - << 'EOF'
           import os
@@ -31,37 +30,49 @@ jobs:
           import re
 
           issue_body = os.environ.get("ISSUE_BODY", "")
+          print("--- GELEN ISSUE ICERIGI ---")
+          print(issue_body)
+          print("---------------------------")
 
+          # Esnek Regex fonksiyonu
           def extract_field(pattern, default=""):
-              match = re.search(pattern, issue_body)
-              return match.group(1).strip() if match else default
+              m = re.search(pattern, issue_body, re.IGNORECASE)
+              return m.group(1).strip() if m else default
 
-          plugin_id = extract_field(r"-\s*\*\*Modül ID:\*\*\s*`([^`]+)`")
-          name = extract_field(r"-\s*\*\*İsim:\*\*\s*(.+)")
-          version = extract_field(r"-\s*\*\*Sürüm:\*\*\s*(.+)", "1.0.0")
-          author = extract_field(r"-\s*\*\*Geliştirici:\*\*\s*(.+)", "Anonim")
-          category = extract_field(r"-\s*\*\*Kategori:\*\*\s*(.+)", "Genel")
-          description = extract_field(r"-\s*\*\*Açıklama:\*\*\s*(.+)", "")
-          download_url = extract_field(r"🔗\s*\*\*\.aio İndirme Bağlantısı:\*\*\s*(https?://[^\s]+)")
+          plugin_id = extract_field(r"Modül ID:[*\s`]*([a-zA-Z0-9_\-]+)")
+          name = extract_field(r"İsim:[*\s]*([^\n\r]+)")
+          version = extract_field(r"Sürüm:[*\s]*([0-9\.]+)", "1.0.0")
+          author = extract_field(r"Geliştirici:[*\s]*([^\n\r]+)", "Topluluk")
+          category = extract_field(r"Kategori:[*\s]*([^\n\r]+)", "Genel")
+          description = extract_field(r"Açıklama:[*\s]*([^\n\r]+)", "")
+          
+          # URL'yi hem direkt linkten hem markdown linkten yakala
+          url_match = re.search(r"(https?://[^\s\)\`]+)", issue_body)
+          download_url = url_match.group(1).strip() if url_match else ""
 
-          if not plugin_id or not download_url:
-              print("Eksik bilgi: Modül ID veya İndirme Linki bulunamadı.")
+          print(f"Ayıklanan ID: '{plugin_id}'")
+          print(f"Ayıklanan URL: '{download_url}'")
+
+          if not plugin_id:
+              plugin_id = "custom_module_" + str(int(os.environ.get("GITHUB_RUN_NUMBER", "1")))
+          
+          if not download_url:
+              print("HATA: Gecerli bir indirme linki bulunamadi!")
               exit(1)
 
           catalog_path = "catalog.json"
           catalog = []
           if os.path.exists(catalog_path):
-              with open(catalog_path, "r", encoding="utf-8") as f:
-                  try:
+              try:
+                  with open(catalog_path, "r", encoding="utf-8") as f:
                       catalog = json.load(f)
-                  except:
-                      catalog = []
+              except Exception as e:
+                  print(f"catalog.json okunamadi, sifirlaniyor: {e}")
+                  catalog = []
 
-          # Eğer aynı id varsa güncelle, yoksa yeni ekle
-          updated = False
           new_entry = {
               "id": plugin_id,
-              "name": name,
+              "name": name if name else plugin_id,
               "version": version,
               "author": author,
               "category": category,
@@ -69,6 +80,7 @@ jobs:
               "download_url": download_url
           }
 
+          updated = False
           for idx, item in enumerate(catalog):
               if item.get("id") == plugin_id:
                   catalog[idx] = new_entry
@@ -81,20 +93,21 @@ jobs:
           with open(catalog_path, "w", encoding="utf-8") as f:
               json.dump(catalog, f, indent=2, ensure_ascii=False)
 
-          print(f"Başarıyla eklendi/güncellendi: {plugin_id}")
+          print("catalog.json basariyla guncellendi!")
           EOF
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
 
-      - name: Değişiklikleri Kaydet (Commit & Push)
+      - name: Degisiklikleri Push Et
         run: |
-          git config --global user.name "AI1-Bot"
-          git config --global user.email "bot@ai1.internal"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add catalog.json
-          git commit -m "feat(catalog): Modül otomatik eklendi [skip ci]" || exit 0
+          git commit -m "Auto: Plugin catalog updated" || echo "Degisiklik yok"
           git push
 
-      - name: Issue'yu Kapat ve Yanıt Ver
+      - name: Issue Kapat
         uses: actions/github-script@v7
         with:
           script: |
@@ -102,7 +115,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "🎉 **Modülünüz başarıyla onaylandı ve AI1 Eklenti Mağazası'na (catalog.json) eklendi!** Artık tüm kullanıcılar marketten tek tıkla indirebilir."
+              body: "🎉 **Modül başarıyla AI1 Eklenti Mağazası'na eklendi!**\nArtık tüm AI1 kullanıcıları mağazadan tek tıkla indirebilir."
             });
             github.rest.issues.update({
               issue_number: context.issue.number,
