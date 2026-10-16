@@ -13,5 +13,20 @@
         "download_url": "https://github.com/Kcodeio/quicknote/raw/refs/heads/main/quick_notes.aio"
       }
     ]
+  },
+  {
+    "id": "security_guard",
+    "name": "🚨 Güvenlik Nöbetçisi",
+    "version": "1.1.0",
+    "author": "Kcode",
+    "category": "Güvenlik",
+    "description": "Hareket, tuş basımı, USB takıp/çıkarma ve şarj kablosu çekilmesini algılayıp AI1 kırmızı kilit ekranını tetikler.",
+    "download_url": "https://github.com/Kcodeio/secguard/raw/refs/heads/main/security_guard.aio",
+    "versions": [
+      {
+        "version": "1.1.0",
+        "download_url": "https://github.com/Kcodeio/secguard/raw/refs/heads/main/security_guard.aio"
+      }
+    ]
   }
 ]
