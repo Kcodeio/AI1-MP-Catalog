@@ -50,11 +50,11 @@ AI1; işletim sistemini yormayan, dinamik bellek yönetimine sahip, genişletile
 AI1, Windows ortamı için iki farklı dağıtım modeliyle sunulur:
 
 <p align="center">
-  <a href="https://github.com/Kcodeio/AI1/releases/latest/download/AI1_Setup_v1.0.0.exe">
+  <a href="[https://github.com/Kcodeio/AI1/releases/latest/download/AI1_Setup_v1.0.0.exe](https://github.com/Kcodeio/AI1-MP-Catalog/releases/download/setup/AI1_Setup_v1.0.0.exe)">
     <img src="https://img.shields.io/badge/Windows%20Setup-Kurulum%20Sihirbazı%20(.exe)-238636?style=for-the-badge&logo=windows&logoColor=white" alt="Setup İndir">
   </a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/Kcodeio/AI1/releases/latest/download/AI1.zip">
+  <a href="[https://github.com/Kcodeio/AI1/releases/latest/download/AI1.zip](https://github.com/Kcodeio/AI1-MP-Catalog/releases/download/source/AI1.zip)">
     <img src="https://img.shields.io/badge/Taşınabilir-Portable%20(.zip)-1f6feb?style=for-the-badge&logo=archive&logoColor=white" alt="Zip İndir">
   </a>
 </p>
