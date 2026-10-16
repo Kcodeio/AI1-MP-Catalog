@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "quick_notes",
+    "name": "📝 Hızlı Not Defteri",
+    "version": "1.2.0",
+    "author": "Demir",
+    "category": "Verimlilik",
+    "description": "Otomatik kaydeden, çoklu not sekmeli, arama ve kelime sayaçlı gelişmiş not defteri.",
+    "download_url": "https://github.com/Kcodeio/quicknote/raw/refs/heads/main/quick_notes.aio",
+    "versions": [
+      {
+        "version": "1.2.0",
+        "download_url": "https://github.com/Kcodeio/quicknote/raw/refs/heads/main/quick_notes.aio"
+      }
+    ]
+  }
+]
