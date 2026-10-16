@@ -64,3 +64,11 @@ Modüller `manifest.json` dosyasında belirttikleri izin sınırları içinde ç
 ```bash
 git clone [https://github.com/Kcodeio/AI1.git](https://github.com/Kcodeio/AI1.git)
 cd AI1
+
+### 📥 İndir
+
+[![İndir](https://img.shields.io/badge/İndir-AI1%20Kurulum%20Paketi-blue?style=for-the-badge&logo=windows)](https://github.com/Kcodeio/quicknote/releases/latest/download/AI1.zip)
+
+veya doğrudan link olarak:
+
+👉 [AI1 Son Sürümü İndir (.zip)](https://github.com/Kcodeio/quicknote/releases/latest/download/AI1.zip)
