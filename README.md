@@ -1,4 +1,4 @@
-# ⚡ AI1 - Modular Workstation Platform
+# ⚡ AI1 - Modular Workstation Platform WE ARE NEW V1.0.1 WE ADDED LANGUAGE SUPPORT
 
 <p align="center">
   <img src="assets/icon.png" alt="AI1 Logo" width="130" height="130">
